@@ -15,7 +15,7 @@
 
 - id: php-unit
   name: PHP Unit
-  description: Run the full php unit test. Checks which PHPUnit executable is available first and then runs it. Preference order is vendor/bin, phpunit and phpunit.phar.
+  description: Run the full php unit test. Checks which PHPUnit executable is available first and then runs it. Preference order is phpunit.phar, vendor/bin/phpunit, phpunit and bin/phpunit.
   entry: pre_commit_hooks/php-unit.sh
   language: script
   files: \.php$
