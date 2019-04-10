@@ -1,45 +1,46 @@
 #!/usr/bin/env bash
 
-# Bash PHP Codesniffer Hook
-# This script fails if the PHP Codesniffer output has the word "ERROR" in it.
-# Does not support failing on WARNING AND ERROR at the same time.
-#
-# Exit 0 if no errors found
-# Exit 1 if errors were found
-#
-# Requires
-# - php
-#
-# Arguments
-# - None
+EXECUTABLE_NAME=php-cs-fixer
+EXECUTABLE_COMMAND=fix
+CONFIG_FILE=.php_cs
+CONFIG_FILE_PARAMETER='--config-file'
+ROOT=`pwd`
 
-# Echo Colors
-msg_color_magenta='\033[1;35m'
-msg_color_yellow='\033[0;33m'
-msg_color_none='\033[0m' # No Color
+# possible locations
+locations=(
+  $ROOT/bin/$EXECUTABLE_NAME
+  $ROOT/vendor/bin/$EXECUTABLE_NAME
+  `which $EXECUTABLE_NAME`
+)
 
-# Loop through the list of paths to run php codesniffer against
-echo -en "${msg_color_yellow}Begin PHP Codesniffer ...${msg_color_none} \n"
+for location in ${locations[*]}
+do
+  if [[ -x $location ]]; then
+    EXECUTABLE=$location
+    break
+  fi
+done
 
-# Possible command names of this tool
-local_command="phpcs.phar"
-vendor_command="vendor/bin/phpcs"
-global_command="phpcs"
-bin_command="bin/phpcs"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $DIR/helpers/locate.sh
-
-phpcs_files_to_check="${@:2}"
-phpcs_args=$1
-phpcs_command="$exec_command $phpcs_args $phpcs_files_to_check"
-
-echo "Running command $phpcs_command"
-command_result=`eval $phpcs_command`
-if [[ $command_result =~ ERROR ]]
-then
-    echo -en "${msg_color_magenta}Errors detected by PHP CodeSniffer ... ${msg_color_none} \n"
-    echo "$command_result"
-    exit 1
+if [[ ! -x $EXECUTABLE ]]; then
+  echo "executable $EXECUTABLE_NAME not found, exiting..."
+  echo "if you're sure this is incorrect, make sure they're executable (chmod +x)"
+  exit
 fi
 
-exit 0
+echo "using \"$EXECUTABLE_NAME\" located at $EXECUTABLE"
+$EXECUTABLE --version
+
+if [[ -f $ROOT/$CONFIG_FILE ]]; then
+  CONFIG=$ROOT/$CONFIG_FILE
+  echo "config file located at $CONFIG loaded"
+fi
+
+git status --porcelain | grep -e '^[AM]\(.*\).php$' | cut -c 3- | while read line; do
+  if [[ -f $CONFIG ]]; then
+    $EXECUTABLE $EXECUTABLE_COMMAND $CONFIG_FILE_PARAMETER=$CONFIG $line;
+  else
+    $EXECUTABLE $EXECUTABLE_COMMAND $line;
+  fi
+
+  git add $line;
+done
