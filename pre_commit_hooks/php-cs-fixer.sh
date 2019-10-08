@@ -23,7 +23,7 @@ title="PHP Code Fixer"
 
 # Possible command names of this tool
 local_command="php-cs-fixer.phar"
-vendor_command="vendor/bin/php-cs-fixer"
+vendor_command="vendor/friendsofphp/php-cs-fixer/php-cs-fixer"
 global_command="php-cs-fixer"
 bin_command="bin/php-cs-fixer"
 
